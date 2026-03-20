@@ -1,0 +1,15 @@
+module multiplicador_q4_12 (
+    input  signed [15:0] a,
+    input  signed [15:0] b,
+    output signed [15:0] produto
+);
+    wire signed [31:0] aux;
+
+    // Multiplicação completa (Q4.12 * Q4.12 = Q8.24)
+    assign aux = a * b;
+
+    // Ajuste do ponto fixo:
+    // O ponto original está após 12 bits. No aux (32 bits), ele está após 24 bits.
+    // Pegamos do bit 12 ao 27 para manter o formato Q4.12.
+    assign produto = aux[27:12];
+endmodule

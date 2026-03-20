@@ -1,0 +1,36 @@
+module mac(
+    input clk,
+    input reset,
+    input clk_en,           // habilita o cálculo durante os 784 pixels
+    input zerar, 
+    input signed [15:0] pixel,   // entrada da Imagem (Q4.12)
+    input signed [15:0] peso,    // peso por pixrl
+    input signed [15:0] bias,    // bias do neurônio
+    input resete_soma,      // pulso após processar os 784 pixels
+    output signed [15:0] saida // resultado para a ativação (tanh)
+);
+
+    // Na multiplicação de Q4.12 (16 bits), o produto tem 32 bits (Q8.24)
+    reg signed [31:0] acumulador;
+    wire signed [31:0] produto;
+
+    // Multiplicação com sinal
+    assign produto = pixel * peso;
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            acumulador <= 32'd0;
+        end else if (zerar) begin
+            acumulador <= 32'd0;
+        end else if (clk_en) begin
+            // soma o produto de 32 bits ao acumulador
+            acumulador <= acumulador + produto;
+        end else if (resete_soma) begin
+            // alinha o bias (Q4.12) com o acumulador (Q8.24) deslocando 12 bits
+            acumulador <= acumulador + (bias << 12);
+        end
+    end
+
+    assign saida = acumulador[27:12]; 
+
+endmodule
